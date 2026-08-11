@@ -1,17 +1,22 @@
 # Iteration log template
 
+Append one block after each attempted state change. Never rewrite earlier blocks.
+
 ## Iteration N
 
+- Started from contract SHA-256:
 - Target criterion:
+- Pre-action exit checks:
 - Intended state change:
 - Action taken:
 - Files or systems changed:
 - Verification command or method:
 - Result: `PASS` or `FAIL`
 - Evidence:
-- Protected invariants checked:
+- Protected verifier and invariant checks:
+- State fingerprint:
 - Remaining gap:
-- Budget consumed / remaining:
-- Next decision: `CONTINUE`, `DONE`, `NEEDS APPROVAL`, or `BLOCKED`
+- Iteration, time, token, and cost consumed / remaining:
+- Next decision: `CONTINUE`, `DONE`, `NEEDS_APPROVAL`, or `BLOCKED`
 
-For no-progress detection, compare the current artifact hashes, test results, open-criterion count, or another contract-defined state fingerprint with the previous two iterations.
+Compare the fingerprint with recent entries. Stop when the contract's no-progress threshold is reached.

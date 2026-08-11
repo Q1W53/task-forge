@@ -1,64 +1,77 @@
 # Task Contract template
 
-## 1. Goal and observable outcome
+## 1. Identity and rigor
+
+- Run ID:
+- Mode: `LITE`, `STANDARD`, or `STRICT`
+- Owner:
+- Readiness: `READY`, `READY WITH TBDs`, or `NOT READY`
+
+## 2. Goal and observable outcome
 
 - Objective:
 - Beneficiary:
 - Observable outcome:
 
-## 2. Scope and non-goals
+## 3. Scope and non-goals
 
 - In scope:
 - Out of scope:
 
-## 3. Inputs and source of truth
+## 4. Inputs and source of truth
 
 - Required inputs:
 - Trusted sources, in priority order:
 - Conflict-resolution rule:
 
-## 4. Constraints and invariants
+## 5. Constraints and protected invariants
 
 - Deadline and budgets:
 - Format or technology:
 - Security, privacy, legal, or policy constraints:
-- Invariants that must remain true:
+- Protected files, tests, verifier configuration, and other invariants:
 
-## 5. Acceptance and evidence
+## 6. Acceptance and evidence
 
-| # | Acceptance criterion | Required evidence | Verifier |
+| ID | Observable pass/fail criterion | Required evidence | Independent verifier |
 | --- | --- | --- | --- |
-| 1 | Observable pass/fail condition | Test, file, diff, log, citation, screenshot, or approval | Person or mechanism |
+| AC-1 |  |  |  |
 
-## 6. Permissions and approval gates
+## 7. Permissions and approval gates
 
-- Allowed without approval:
+- Allowed without another approval:
 - Requires approval:
 - Prohibited:
 - Rollback or recovery requirement:
 
-## 7. Execution checkpoints
+## 8. Loop control
 
-1. Smallest safe first step:
-2. Verification point:
-3. Next bounded increment:
-
-## 8. Failure, stop, and escalation
-
+- Trigger pattern: `goal`, `heartbeat`, `cron`, `hook`, or `manual`
+- Observation checked each cycle:
+- Smallest action per cycle:
+- Success exit:
+- Failure exit:
 - Maximum iterations:
-- Time, token, and monetary budgets:
-- Retry limit:
-- No-progress rule:
-- Stop conditions:
-- Escalate to:
+- Maximum failures for one criterion:
+- Wall-clock, token, and monetary limits:
+- No-progress fingerprint and threshold:
+- Rate limit, backpressure, and idempotency rule when event-driven:
+- Escalation target and notification path:
 
-## 9. Assumptions and open questions
+## 9. Execution checkpoints
+
+1. First safe action:
+2. Per-iteration verification:
+3. Terminal verification:
+
+## 10. Assumptions and open questions
 
 - Confirmed assumptions:
 - Unresolved `TBD` items:
+- Reason for readiness status:
 
-## 10. Readiness
+## 11. Confirmation and amendments
 
-- Status: `READY`, `READY WITH TBDs`, or `NOT READY`
-- Reason:
-- Recommended next step after confirmation:
+- Confirmed by:
+- Confirmation evidence and time:
+- Amendments:

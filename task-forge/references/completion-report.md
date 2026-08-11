@@ -2,21 +2,30 @@
 
 ## Outcome
 
-- State: `DONE`, `PARTIAL`, `NEEDS APPROVAL`, or `BLOCKED`
-- Result:
+- State: `DONE`, `PARTIAL`, `NEEDS_APPROVAL`, or `BLOCKED`
+- Observable result:
+- Contract SHA-256:
+- Final state validation:
 
 ## Evidence matrix
 
-| # | Acceptance criterion | Status | Evidence | Verifier |
+| ID | Acceptance criterion | Status | Evidence | Verifier |
 | --- | --- | --- | --- | --- |
-| 1 | Criterion from the contract | `PASS` / `FAIL` | Checkable location or result | Person or mechanism |
+| AC-1 |  | `PASS` or `FAIL` |  |  |
+
+## Invariants and approvals
+
+- Protected verifier fingerprint result:
+- Other invariants checked:
+- Required approvals and evidence:
 
 ## Changes made
 
 - Material change and location:
 
-## Limits and residual risks
+## Limits and residual risk
 
+- Budgets consumed:
 - Remaining uncertainty:
 - Work intentionally not performed:
 
