@@ -1,0 +1,4 @@
+interface:
+  display_name: "TaskForge"
+  short_description: "Forge ambiguous requests into evidence-backed results"
+  default_prompt: "Use $task-forge to turn this request into a confirmed Task Contract, execute it within clear bounds, and prove completion with evidence."
