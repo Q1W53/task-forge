@@ -25,7 +25,7 @@ TaskForge 每次回复只允许处于一个阶段。只要还有会改变目标�
 - `NOT READY` 只是问题缺口说明，不能进入 `CONFIRM`。
 - 所有关键问题得到回答后，才可生成 `READY` 或 `READY WITH TBDs` 契约。
 - 用户明确确认可见契约后，才可进入 TaskForge 的执行 `LOOP`。
-- 用户要设计的 Dify Loop/Iteration 节点属于交付物内容，不等于 TaskForge 已进入执行阶段。
+- 交付物内部的循环或迭代机制属于任务内容，不等于 TaskForge 已进入执行阶段。
 
 ## DEEP 的文档体系
 

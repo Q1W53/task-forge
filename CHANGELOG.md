@@ -7,7 +7,7 @@
 - 强化 `GRILL -> CONTRACT -> CONFIRM -> LOOP` 阶段门禁：关键问题未回答时必须停留在 `GRILL`，不得提前生成待确认契约。
 - 新增 `AWAITING_INPUT` 状态，区分“等待用户补充材料”和“等待用户确认完整契约”。
 - 修正 DEEP 运行初始化状态，空白契约不再被错误标记为 `AWAITING_CONFIRMATION`。
-- 明确产品内部的 Dify Loop/Iteration 节点与 TaskForge 执行循环是两个不同层级。
+- 明确交付物内部的循环机制与 TaskForge 执行循环是两个不同层级。
 - 验证器新增契约准备状态检查：只有 `READY` 或 `READY WITH TBDs` 才能进入 `AWAITING_CONFIRMATION`。
 
 ### 测试

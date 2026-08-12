@@ -24,7 +24,7 @@ cases:
         command: node $CASE/checks/grade.mjs light-edit
   - name: material-questions-stay-in-grill
     task: |
-      Use $task-forge to design a Dify workflow that reviews uploaded workflow YAML files. I have not specified which YAML formats are accepted, how findings are scored, or what evidence proves the review is correct. Ask me the questions that must be answered before you design it.
+      Use $task-forge to design a configuration-review tool. I have not specified which input formats are accepted, how findings are scored, or what evidence proves the review is correct. Ask me the questions that must be answered before you design it.
     graders:
       - name: waits-for-input-before-contract
         command: node $CASE/checks/grade.mjs grill-gate
