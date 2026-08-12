@@ -17,6 +17,16 @@ TaskForge 是一个面向 Codex 的任务工程 Skill。它适合处理容易误
 
 两种模式都不能跳过提问，也不能把未展示的内部计划当成用户已确认的契约。区别只在提问深度和是否建立持久运行目录。
 
+## 阶段门禁
+
+TaskForge 每次回复只允许处于一个阶段。只要还有会改变目标、范围、权限、验收方式、验证器、预算或停止条件的关键问题，任务就必须停留在 `GRILL`，状态为 `AWAITING_INPUT`。
+
+- 提出关键问题的同一轮，不得同时给出可确认的任务契约。
+- `NOT READY` 只是问题缺口说明，不能进入 `CONFIRM`。
+- 所有关键问题得到回答后，才可生成 `READY` 或 `READY WITH TBDs` 契约。
+- 用户明确确认可见契约后，才可进入 TaskForge 的执行 `LOOP`。
+- 用户要设计的 Dify Loop/Iteration 节点属于交付物内容，不等于 TaskForge 已进入执行阶段。
+
 ## DEEP 的文档体系
 
 `DEEP` 吸收了 `grill-with-docs` 的做法。访谈不再只留在聊天记录里，而是把事实、共同语言和关键选择拆开保存：
@@ -144,6 +154,10 @@ task-forge/
 ```
 
 仓库根目录存放公开说明和 MIT 许可证；内层目录是可直接安装的 Codex Skill。
+
+## 更新日志
+
+版本变化记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## License
 

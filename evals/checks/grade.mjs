@@ -26,6 +26,12 @@ if (name === 'no-trigger') {
 } else if (name === 'light-edit') {
   if (readFileSync(join(work, 'note.txt'), 'utf8') !== 'status: reviewed\n') failures.push('note.txt did not receive the exact edit');
   if (existsSync(join(work, '.taskforge'))) failures.push('LIGHT edit created durable run files');
+} else if (name === 'grill-gate') {
+  const text = finalText();
+  if (!/AWAITING_INPUT/.test(text)) failures.push('response did not remain in AWAITING_INPUT');
+  if (!/[?？]/.test(text)) failures.push('response did not ask material questions');
+  if (/AWAITING_CONFIRMATION/.test(text)) failures.push('response advanced to confirmation before answers');
+  if (/请确认.{0,20}(契约|合同)|confirm.{0,20}(contract|task contract)/is.test(text)) failures.push('response asked for contract confirmation before answers');
 } else if (name === 'deep-output') {
   const run = spawnSync('python', ['validate_items.py'], { cwd: work, encoding: 'utf8' });
   if (run.status !== 0) failures.push(`inventory validator failed: ${run.stderr || run.stdout}`);

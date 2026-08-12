@@ -11,6 +11,16 @@ Run six stages:
 
 Never skip GRILL, hide the contract, or call work complete without evidence for every acceptance criterion. Ask proportionately: lightweight work receives a short interview; complex or risky work receives a deeper interview and durable controls.
 
+### Hard stage gates
+
+Keep exactly one active stage in each response. A later stage may be explained, but its artifact or action must not be produced early.
+
+- If any unanswered question could materially change the goal, business meaning, scope, authority, acceptance evidence, verifier, budget, or stopping rule, remain in `GRILL` and end with `AWAITING_INPUT`.
+- Do not present a confirmable Task Contract in the same response that asks unanswered material questions. A gap summary or draft notes may be shown, but label them `NOT READY` and do not ask for contract confirmation.
+- Enter `CONTRACT` only after every material question is answered. Only genuinely non-blocking items may remain as `TBD` in a `READY WITH TBDs` contract.
+- Enter `CONFIRM` only after the complete, visible contract is `READY` or `READY WITH TBDs`. `NOT READY` is a `GRILL` result, not a contract the user can confirm.
+- Enter TaskForge's execution `LOOP` only after explicit confirmation. A loop or iteration node inside the requested product is part of the artifact design; it does not advance the TaskForge stage.
+
 ## 1. Select one of two modes
 
 | Mode | Use | Required behavior and artifacts |
@@ -63,6 +73,7 @@ Then ask questions whose answers affect the result, business meaning, scope, aut
 - Cover at least current state, desired outcome, and acceptance evidence.
 - Recommend a default when a trade-off matters.
 - Mark genuinely non-blocking unknowns `TBD`.
+- If a material answer is missing, ask the questions and stop at `AWAITING_INPUT`; do not draft the compact contract yet.
 - Do not begin state-changing work before showing the compact contract and receiving confirmation.
 
 ### DEEP interview
@@ -70,6 +81,7 @@ Then ask questions whose answers affect the result, business meaning, scope, aut
 - Probe current and target state, beneficiary, business workflow, source precedence, scope/non-goals, edge cases, acceptance and evidence, permissions, reversibility, budgets, exits, and escalation.
 - Batch independent questions in rounds; do not overwhelm the user with a long unprioritized questionnaire.
 - Continue until the contract is `READY` or `READY WITH TBDs`. A material semantic gap makes it `NOT READY`.
+- When readiness is `NOT READY`, update interview documents if useful, show the unresolved gap summary, and stop at `AWAITING_INPUT`. Do not advance to `CONTRACT` or `CONFIRM` in that response.
 - High-risk or unattended work is not ready until success is independently checkable and controller limits are concrete.
 - Persist confirmed context, terminology, and decisions as the interview progresses; show meaningful document changes before contract confirmation.
 
@@ -142,6 +154,7 @@ Name the trigger, completed work, evidence, exact missing condition, and smalles
 
 End a TaskForge cycle with exactly one state:
 
+- `AWAITING_INPUT`
 - `AWAITING_CONFIRMATION`
 - `RUNNING`
 - `DONE`

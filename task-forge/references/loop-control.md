@@ -56,7 +56,7 @@ Store current machine state at `.taskforge/<run-id>/state.json`. A complete DEEP
 }
 ```
 
-Allowed status values are `AWAITING_CONFIRMATION`, `RUNNING`, `DONE`, `PARTIAL`, `NEEDS_APPROVAL`, and `BLOCKED`. Criterion status values are `PENDING`, `PASS`, and `FAIL`.
+Allowed status values are `AWAITING_INPUT`, `AWAITING_CONFIRMATION`, `RUNNING`, `DONE`, `PARTIAL`, `NEEDS_APPROVAL`, and `BLOCKED`. Use `AWAITING_INPUT` while material GRILL questions remain. Use `AWAITING_CONFIRMATION` only after a complete visible contract is `READY` or `READY WITH TBDs`. Criterion status values are `PENDING`, `PASS`, and `FAIL`.
 
 Build a fingerprint from facts that show real progress, such as artifact hashes, failing-test identifiers, open-criterion IDs, and external resource versions. Do not use timestamps, iteration counters, random IDs, or prose summaries; they change even when the work does not.
 

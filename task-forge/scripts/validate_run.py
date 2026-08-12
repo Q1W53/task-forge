@@ -12,6 +12,7 @@ from typing import Any
 
 
 RUN_STATES = {
+    "AWAITING_INPUT",
     "AWAITING_CONFIRMATION",
     "RUNNING",
     "DONE",
@@ -52,6 +53,14 @@ def positive_integer(value: Any) -> bool:
     return isinstance(value, int) and not isinstance(value, bool) and value > 0
 
 
+def contract_readiness(contract: str) -> str | None:
+    for line in contract.splitlines():
+        if line.startswith("- Readiness:") or line.startswith("- 准备状态："):
+            value = line.split(":" if line.startswith("- Readiness:") else "：", 1)[1]
+            return value.replace("`", "").strip()
+    return None
+
+
 def validate(run_dir: Path) -> list[str]:
     errors: list[str] = []
     contract_path = run_dir / "contract.md"
@@ -88,6 +97,9 @@ def validate(run_dir: Path) -> list[str]:
     status = state.get("status")
     if status not in RUN_STATES:
         errors.append("status is invalid")
+    readiness = contract_readiness(contract)
+    if status == "AWAITING_CONFIRMATION" and readiness not in {"READY", "READY WITH TBDs"}:
+        errors.append("AWAITING_CONFIRMATION requires contract readiness READY or READY WITH TBDs")
     expected_hash = sha256_text(contract)
     if state.get("contract_sha256") != expected_hash:
         errors.append("contract_sha256 does not match contract.md")
@@ -109,6 +121,8 @@ def validate(run_dir: Path) -> list[str]:
         errors.append("iteration must be a non-negative integer")
     elif positive_integer(limits.get("max_iterations")) and iteration > limits["max_iterations"]:
         errors.append("iteration exceeds max_iterations")
+    if status == "AWAITING_INPUT" and iteration != 0:
+        errors.append("AWAITING_INPUT is a pre-execution state and requires iteration 0")
 
     criteria = state.get("criteria")
     if not isinstance(criteria, list) or not criteria:
@@ -230,6 +244,18 @@ def self_test() -> int:
         (run_dir / "state.json").write_text(json.dumps(state), encoding="utf-8")
         if validate(run_dir):
             print("self-test failed: valid fixture was rejected")
+            return 1
+        state["status"] = "AWAITING_CONFIRMATION"
+        (run_dir / "state.json").write_text(json.dumps(state), encoding="utf-8")
+        if not validate(run_dir):
+            print("self-test failed: AWAITING_CONFIRMATION accepted a contract without readiness")
+            return 1
+        ready_contract = contract + "- Readiness: `READY`\n"
+        (run_dir / "contract.md").write_text(ready_contract, encoding="utf-8")
+        state["contract_sha256"] = sha256_text(ready_contract)
+        (run_dir / "state.json").write_text(json.dumps(state), encoding="utf-8")
+        if validate(run_dir):
+            print("self-test failed: ready contract was rejected at AWAITING_CONFIRMATION")
             return 1
         state["status"] = "DONE"
         state["criteria"][0]["evidence"] = []

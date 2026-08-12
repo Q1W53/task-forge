@@ -7,6 +7,8 @@
 - Owner:
 - Readiness: `READY`, `READY WITH TBDs`, or `NOT READY`
 
+`NOT READY` means the task remains in `GRILL`. Do not ask the user to confirm this contract. Resolve every material question first; only non-blocking `TBD` items may remain when readiness advances.
+
 ## 2. Goal and observable outcome
 
 - Current state:

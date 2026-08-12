@@ -73,7 +73,7 @@ def main() -> int:
         "run_id": args.run_id,
         "mode": args.mode,
         "document_language": language,
-        "status": "AWAITING_CONFIRMATION",
+        "status": "AWAITING_INPUT",
         "contract_sha256": contract_hash,
         "iteration": 0,
         "limits": {
