@@ -2,112 +2,134 @@
 
 `GRILL -> CONTRACT -> CONFIRM -> LOOP -> PROVE | ESCALATE`
 
-TaskForge is a Codex skill for work that is ambiguous, consequential, unattended, or difficult to verify. It turns the request into an executable agreement, runs bounded iterations, and accepts completion only when every criterion has checkable evidence.
+TaskForge 是一个面向 Codex 的任务工程 Skill。它适合处理容易误解、影响较大、需要持续推进，或者“做完了”却很难证明的工作。它先追问，再展示任务契约；用户确认后才执行，最终用逐项证据收口。
 
-TaskForge（任务锻造）是一个面向 Codex 的任务工程 Skill，适合处理目标模糊、影响较大、需要持续运行或难以验收的工作。它先把请求整理成可执行协议，再按有限循环推进；只有每项标准都有可检查证据时，才允许宣布完成。
+## 为什么改成两个模式
 
-## Why it exists｜为什么需要它
+旧版使用 `LITE`、`STANDARD`、`STRICT` 三档。实际使用中，`LITE` 容易被理解成“可以不提问、不展示契约”，而后两档在文档持久化上又有较多重叠。
 
-Agent failures often begin before execution: “done” has no objective meaning, the source of truth is unclear, authority is assumed, or the loop has no hard exit. TaskForge puts those decisions into a Task Contract before expensive work begins.
+现在只保留两种行为清楚的模式：
 
-许多 Agent 任务在执行前就已经埋下问题：“完成”没有客观定义、真相源不明确、权限靠猜测，或者循环没有硬性出口。TaskForge 会在高成本执行开始前，把这些决定写入任务契约。
-
-It also protects small tasks from process overhead. A one-session reversible edit stays light; a production loop receives durable state, controller limits, verifier protection, and approval gates.
-
-它也避免用重流程拖慢小任务。单次会话内的可逆编辑走轻量路径；生产级循环则必须具备持久状态、控制器限制、验证器保护和审批门槛。
-
-## Three rigor modes｜三级严格度
-
-| Mode | English | 中文 |
+| 模式 | 适用情况 | 必须做到 |
 | --- | --- | --- |
-| `LITE` | Clear, low-risk, reversible work. No TaskForge files. | 目标清楚、低风险且可逆；不创建 TaskForge 文件。 |
-| `STANDARD` | Multi-step work or material writes. Persist contract, state, iterations, and completion evidence. | 多步骤任务或实质性写入；持久保存契约、状态、迭代和完成证据。 |
-| `STRICT` | Unattended, external, irreversible, production, regulated, or costly work. Controller-enforced limits and protected verifiers are mandatory. | 无人值守、对外、不可逆、生产、受监管或成本较高的工作；必须由控制器强制限制并保护验证器。 |
+| `LIGHT` | 单次会话、低风险、可逆、目标基本明确 | 提出 2–5 个会改变结果的问题；在聊天中展示简版契约和验收表；得到确认后执行；最终给出证据矩阵。 |
+| `DEEP` | 多步骤、业务语义复杂、跨会话、长期运行、对外写入、不可逆或成本较高 | 分轮深问；沉淀上下文、术语和决策；建立持久状态、审批、预算和停止条件；逐轮验证并保留证据。 |
 
-## Six stages｜六个阶段
+两种模式都不能跳过提问，也不能把未展示的内部计划当成用户已确认的契约。区别只在提问深度和是否建立持久运行目录。
 
-| Stage | English | 中文 |
-| --- | --- | --- |
-| `GRILL` | Ask only questions that can change the result, authority, verifier, or stopping behavior. | 只追问会改变结果、权限、验证方式或停止行为的问题。 |
-| `CONTRACT` | Define scope, source precedence, acceptance criteria, evidence, permissions, budgets, and exits. | 写清范围、真相源优先级、验收标准、证据、权限、预算和出口。 |
-| `CONFIRM` | Obtain authority for the actual action and scope; never treat silence as approval. | 针对实际动作和范围取得授权；沉默不代表同意。 |
-| `LOOP` | Take one bounded action, verify it, persist state, then evaluate every exit. | 每轮只做一个有限动作，随后验证、保存状态并检查全部出口。 |
-| `PROVE` | Require independent evidence for every passing criterion. | 每个通过项都必须有独立证据。 |
-| `ESCALATE` | Stop on risk, missing authority, exhausted budgets, conflicting sources, or no progress. | 遇到风险、权限不足、预算耗尽、真相源冲突或无进展时停止并交还人工。 |
+## DEEP 的文档体系
 
-## Durable run layout｜持久运行目录
-
-`STANDARD` and `STRICT` runs use `.taskforge/<run-id>/` inside the working repository.
-
-`STANDARD` 与 `STRICT` 运行会在工作仓库中使用 `.taskforge/<run-id>/`。
+`DEEP` 吸收了 `grill-with-docs` 的做法。访谈不再只留在聊天记录里，而是把事实、共同语言和关键选择拆开保存：
 
 ```text
 .taskforge/<run-id>/
-├── contract.md      # confirmed agreement｜已确认契约
-├── state.json       # controller state and limits｜控制器状态与限制
-├── iterations.md    # append-only evidence log｜只追加的证据日志
-└── completion.md    # final evidence matrix｜最终证据矩阵
+├── context.md       # 当前状态、目标状态、事实来源、约束和待确认问题
+├── glossary.md      # 术语、缩写、统一定义和负责人
+├── decisions.md     # 决策问题、备选方案、选择理由和影响
+├── contract.md      # 经确认的执行边界、权限、验收和退出条件
+├── state.json       # 机器可读状态、预算、验收项和状态指纹
+├── iterations.md    # 只追加的动作与验证记录
+└── completion.md    # 最终证据矩阵、剩余风险和后续决定
 ```
 
-Initialize and validate a run with the bundled scripts. The validator uses only the Python standard library.
+`context.md` 只把已确认事实写成事实；没有确认的内容留在“待确认问题”中。`glossary.md` 用来处理同一个词在业务、技术和管理团队中含义不同的问题。`decisions.md` 记录为什么选 A 而没有选 B，避免后续 Agent 只看到结论却不知道限制条件。
 
-使用自带脚本初始化并检查运行目录。验证器只依赖 Python 标准库。
+契约保持精简。背景材料属于 `context.md`，术语属于 `glossary.md`，取舍属于 `decisions.md`；`contract.md` 只保留执行必须遵守的边界。
+
+## 文档语言自动选择
+
+TaskForge 根据用户的主要语言选择所有面向用户的文档：
+
+- 中文请求生成中文契约、上下文、术语、决策、迭代和完成报告。
+- 英文请求生成英文版本。
+- 用户明确指定语言时，明确要求优先于自动判断。
+- 中英文比例接近且没有指定时，沿用当前对话的主要语言，并把选择写进契约。
+- 文件名和 `state.json` 的字段保持英文，方便脚本稳定读取。
+
+初始化脚本支持显式语言，也可以根据请求文本判断：
 
 ```bash
-python task-forge/scripts/init_run.py /path/to/workspace --run-id contract-review --mode STANDARD
-python task-forge/scripts/validate_run.py /path/to/workspace/.taskforge/contract-review
+python task-forge/scripts/init_run.py /path/to/workspace \
+  --run-id sales-pipeline \
+  --mode DEEP \
+  --language auto \
+  --user-text "梳理销售管线实施方案，并在确认后持续执行"
+```
+
+需要固定语言时使用 `--language zh-CN` 或 `--language en`。
+
+## 六个阶段
+
+| 阶段 | 实际行为 |
+| --- | --- |
+| `GRILL` | 先复述当前状态和目标，再追问会改变业务含义、范围、权限、验收或停止行为的问题。 |
+| `CONTRACT` | 展示目标、范围、事实来源、受保护内容、权限、验收证据和退出条件。 |
+| `CONFIRM` | 用户确认可见契约后才开始产生状态变化；沉默不算授权。 |
+| `LOOP` | 每轮只处理一个未通过的验收项，执行最小动作，然后立即验证和记录。 |
+| `PROVE` | 最终逐项列出标准、结果、证据和验证方式；业务正确性与技术正确性分开检查。 |
+| `ESCALATE` | 遇到权限不足、来源冲突、预算耗尽、重复失败或无法判断成功时停止。 |
+
+## 使用示例
+
+轻量任务：
+
+```text
+$task-forge 用 LIGHT 模式帮我修改这份一页 PPT。先问清当前进度和验收要求，展示简版契约，我确认后再制作。
+```
+
+复杂任务：
+
+```text
+$task-forge 用 DEEP 模式设计并实施销售自动化工作流。把业务上下文、术语和架构决策分别沉淀，契约使用中文；没有通过验收前持续迭代，但不要越过审批和预算边界。
+```
+
+英文任务：
+
+```text
+$task-forge Use DEEP mode. Interview me in rounds, keep the contract and companion documents in English, and publish only after every acceptance criterion has evidence.
+```
+
+## 初始化与验证
+
+验证器只使用 Python 标准库。完整 `DEEP` 目录必须包含七份文件，缺少任何一份都会失败；契约可以使用中文或英文标题。
+
+```bash
+python task-forge/scripts/init_run.py /path/to/workspace \
+  --run-id contract-review \
+  --mode DEEP \
+  --language zh-CN
+
+python task-forge/scripts/validate_run.py \
+  /path/to/workspace/.taskforge/contract-review
+
 python task-forge/scripts/validate_run.py --self-test
 ```
 
-## Verification and loop safety｜验证与循环安全
+## 从旧版本迁移
 
-TaskForge checks acceptance criteria with named verifiers, stores real progress fingerprints, and stops when retries, time, iterations, tokens, cost, or no-progress limits fire. Unattended controllers must enforce these limits outside the model call.
+| 旧模式 | 新模式 | 变化 |
+| --- | --- | --- |
+| `LITE` | `LIGHT` | 不再允许完全跳过访谈；必须展示简版契约和最终证据。 |
+| `STANDARD` | `DEEP` | 保留持久契约、状态、迭代和完成报告，并增加上下文、术语和决策文档。 |
+| `STRICT` | `DEEP` | 仍使用审批、硬预算、无进展停止和验证器保护；这些机制按风险启用，不再单独设模式。 |
 
-TaskForge 使用具名验证器检查验收标准，保存能反映真实进展的状态指纹；当重试、时间、迭代、Token、费用或无进展限制触发时立即停止。无人值守控制器必须在模型调用之外执行这些限制。
+旧的 `STANDARD` 或 `STRICT` 运行目录不会被自动重写。新任务应使用 `DEEP`；需要迁移旧状态时，先补齐三份新增文档，并把 `state.json` 中的模式改为 `DEEP`，随后运行验证器。
 
-Verifier code, protected tests, CI rules, and their configuration must stay outside the execution loop’s write authority. A passing signal is rejected if the loop weakened the mechanism that produced it.
+## 验证器保护与停止规则
 
-验证器代码、受保护测试、CI 规则及其配置不能处于执行循环的写权限内。如果循环削弱了产生通过信号的检查机制，即使结果显示通过，也必须拒绝接受。
+验证器代码、受保护测试、CI 规则及其配置不能落入执行循环的写权限。Agent 不能靠删除检查、降低覆盖率、跳过失败或硬编码答案获得通过信号。
 
-## Behavior evals｜行为评测
+默认情况下，同一验收项最多失败三次；两个实质相同的失败，或连续两轮状态指纹相同，都会停止继续尝试。无人值守任务还必须由模型调用之外的控制器执行时间、迭代、Token、金额和速率限制。
 
-The `evals/` suite contains six deterministic cases: trigger restraint, a LITE edit, a STANDARD durable run, verifier tampering, an approval boundary, and a no-progress exit. Real model runs require Docker, `skill-optimizer`, and an `OPENROUTER_API_KEY`.
-
-`evals/` 套件包含六个确定性案例：克制触发、轻量编辑、标准持久运行、验证器篡改、审批边界和无进展退出。运行真实模型矩阵需要 Docker、`skill-optimizer` 和 `OPENROUTER_API_KEY`。
-
-```bash
-npx tsx src/cli.ts run-suite /path/to/task-forge/evals/suite.yml --trials 3
-```
-
-## Install｜安装
-
-Install directly from GitHub:
-
-直接从 GitHub 安装：
+## 安装
 
 ```bash
 python install-skill-from-github.py --repo Q1W53/task-forge --path task-forge
 ```
 
-Or clone the repository and copy the inner `task-forge` directory into `$CODEX_HOME/skills/task-forge`.
+也可以克隆仓库，然后把内层 `task-forge` 目录复制到 `$CODEX_HOME/skills/task-forge`。
 
-也可以克隆仓库，再把内层 `task-forge` 目录复制到 `$CODEX_HOME/skills/task-forge`。
-
-## Use｜使用
-
-```text
-$task-forge Turn this request into the lightest safe Task Contract, execute within explicit limits, and prove completion with evidence.
-```
-
-```text
-$task-forge 用最轻但足够安全的严格度处理这个任务，在明确限制内执行，并用证据证明完成。
-```
-
-TaskForge may trigger implicitly for unattended or consequential work with missing acceptance tests, authority, budgets, stop rules, or escalation paths. It should not trigger implicitly for routine questions, explanations, or small reversible edits whose outcome is already clear.
-
-当无人值守或影响较大的任务缺少验收测试、权限、预算、停止规则或升级路径时，TaskForge 可以隐式触发。对于普通问答、解释，以及目标已经清楚的小型可逆编辑，它不应自行触发。
-
-## Repository structure｜仓库结构
+## 仓库结构
 
 ```text
 task-forge/
@@ -121,14 +143,10 @@ task-forge/
     └── scripts/
 ```
 
-The repository root contains public documentation and the MIT license. The inner directory is the installable Codex skill.
-
 仓库根目录存放公开说明和 MIT 许可证；内层目录是可直接安装的 Codex Skill。
 
-## License｜开源协议
+## License
 
-Released under the [MIT License](LICENSE). You may use, modify, redistribute, and use TaskForge commercially while retaining the copyright and license notice.
-
-本项目采用 [MIT License](LICENSE)。保留版权与许可证声明后，你可以使用、修改、再分发，也可以用于商业项目。
+本项目采用 [MIT License](LICENSE)。保留版权与许可证声明后，可以使用、修改、再分发或用于商业项目。
 
 © 2026 Q1W53

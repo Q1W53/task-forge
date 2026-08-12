@@ -3,12 +3,13 @@
 ## 1. Identity and rigor
 
 - Run ID:
-- Mode: `LITE`, `STANDARD`, or `STRICT`
+- Mode: `LIGHT` or `DEEP`
 - Owner:
 - Readiness: `READY`, `READY WITH TBDs`, or `NOT READY`
 
 ## 2. Goal and observable outcome
 
+- Current state:
 - Objective:
 - Beneficiary:
 - Observable outcome:
@@ -45,6 +46,8 @@
 - Rollback or recovery requirement:
 
 ## 8. Loop control
+
+For `LIGHT`, complete only the fields relevant to the bounded manual task. For `DEEP`, complete every applicable field; unattended or high-risk work requires concrete controller limits.
 
 - Trigger pattern: `goal`, `heartbeat`, `cron`, `hook`, or `manual`
 - Observation checked each cycle:

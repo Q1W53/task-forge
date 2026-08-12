@@ -20,7 +20,7 @@ RUN_STATES = {
     "BLOCKED",
 }
 CRITERION_STATES = {"PENDING", "PASS", "FAIL"}
-REQUIRED_HEADINGS = (
+REQUIRED_HEADINGS_EN = (
     "## 1. Identity and rigor",
     "## 2. Goal and observable outcome",
     "## 5. Constraints and protected invariants",
@@ -28,6 +28,19 @@ REQUIRED_HEADINGS = (
     "## 7. Permissions and approval gates",
     "## 8. Loop control",
     "## 11. Confirmation and amendments",
+)
+REQUIRED_HEADINGS_ZH = (
+    "## 1. 任务身份与严谨度",
+    "## 2. 目标与可观察结果",
+    "## 5. 约束与受保护内容",
+    "## 6. 验收标准与证据",
+    "## 7. 权限与审批闸门",
+    "## 8. 循环控制",
+    "## 11. 确认与修订记录",
+)
+REQUIRED_FILES = (
+    "context.md", "glossary.md", "decisions.md", "contract.md",
+    "state.json", "iterations.md", "completion.md",
 )
 
 
@@ -43,16 +56,18 @@ def validate(run_dir: Path) -> list[str]:
     errors: list[str] = []
     contract_path = run_dir / "contract.md"
     state_path = run_dir / "state.json"
-    for required in (contract_path, state_path, run_dir / "iterations.md", run_dir / "completion.md"):
+    for name in REQUIRED_FILES:
+        required = run_dir / name
         if not required.is_file():
             errors.append(f"missing required file: {required.name}")
     if errors:
         return errors
 
     contract = contract_path.read_text(encoding="utf-8")
-    for heading in REQUIRED_HEADINGS:
-        if heading not in contract:
-            errors.append(f"contract.md missing heading: {heading}")
+    if not all(heading in contract for heading in REQUIRED_HEADINGS_EN) and not all(
+        heading in contract for heading in REQUIRED_HEADINGS_ZH
+    ):
+        errors.append("contract.md must contain the complete English or Chinese heading set")
 
     try:
         state = json.loads(state_path.read_text(encoding="utf-8"))
@@ -66,8 +81,10 @@ def validate(run_dir: Path) -> list[str]:
     if not isinstance(state.get("run_id"), str) or not state["run_id"].strip():
         errors.append("run_id must be a non-empty string")
     mode = state.get("mode")
-    if mode not in {"STANDARD", "STRICT"}:
-        errors.append("mode must be STANDARD or STRICT")
+    if mode != "DEEP":
+        errors.append("durable state mode must be DEEP")
+    if state.get("document_language") not in {"en", "zh-CN"}:
+        errors.append("document_language must be en or zh-CN")
     status = state.get("status")
     if status not in RUN_STATES:
         errors.append("status is invalid")
@@ -144,11 +161,16 @@ def validate(run_dir: Path) -> list[str]:
     if not isinstance(protection, dict):
         errors.append("verifier_protection must be an object")
         protection = {}
-    if mode == "STRICT":
+    if mode == "DEEP" and any(
+        value is not None for value in (
+            limits.get("token_budget"),
+            limits.get("monetary_budget"),
+        )
+    ):
         if not isinstance(protection.get("method"), str) or not protection["method"].strip():
-            errors.append("STRICT mode requires verifier_protection.method")
+            errors.append("budgeted DEEP mode requires verifier_protection.method")
         if not isinstance(protection.get("paths"), list) or not protection["paths"]:
-            errors.append("STRICT mode requires protected verifier paths")
+            errors.append("budgeted DEEP mode requires protected verifier paths")
 
     approvals = state.get("approvals")
     if not isinstance(approvals, list):
@@ -171,14 +193,17 @@ def validate(run_dir: Path) -> list[str]:
 def self_test() -> int:
     with tempfile.TemporaryDirectory() as temporary:
         run_dir = Path(temporary)
-        contract = "\n".join(REQUIRED_HEADINGS) + "\n"
+        contract = "\n".join(REQUIRED_HEADINGS_EN) + "\n"
+        for name in ("context.md", "glossary.md", "decisions.md"):
+            (run_dir / name).write_text(f"# {name}\n", encoding="utf-8")
         (run_dir / "contract.md").write_text(contract, encoding="utf-8")
         (run_dir / "iterations.md").write_text("# Iterations\n", encoding="utf-8")
         (run_dir / "completion.md").write_text("# Completion\n", encoding="utf-8")
         state = {
             "schema_version": 1,
             "run_id": "self-test",
-            "mode": "STANDARD",
+            "mode": "DEEP",
+            "document_language": "en",
             "status": "RUNNING",
             "contract_sha256": sha256_text(contract),
             "iteration": 1,

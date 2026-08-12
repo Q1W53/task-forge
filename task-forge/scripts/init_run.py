@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -20,11 +21,19 @@ def atomic_write(path: Path, content: str) -> None:
     temporary.replace(path)
 
 
+def detect_language(user_text: str) -> str:
+    chinese = len(re.findall(r"[\u3400-\u9fff]", user_text))
+    english = len(re.findall(r"[A-Za-z]", user_text))
+    return "zh-CN" if chinese >= english and chinese > 0 else "en"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Initialize .taskforge/<run-id>.")
     parser.add_argument("workspace", type=Path)
     parser.add_argument("--run-id", required=True)
-    parser.add_argument("--mode", choices=("STANDARD", "STRICT"), default="STANDARD")
+    parser.add_argument("--mode", choices=("DEEP",), default="DEEP")
+    parser.add_argument("--language", choices=("auto", "en", "zh-CN"), default="auto")
+    parser.add_argument("--user-text", default="", help="Request text used when --language auto")
     args = parser.parse_args()
 
     workspace = args.workspace.resolve()
@@ -33,22 +42,29 @@ def main() -> int:
         parser.error(f"run directory already exists: {run_dir}")
 
     references = Path(__file__).resolve().parent.parent / "references"
+    language = detect_language(args.user_text) if args.language == "auto" else args.language
+    suffix = ".zh-CN.md" if language == "zh-CN" else ".md"
     run_dir.mkdir(parents=True)
-    contract = (references / "task-contract.md").read_text(encoding="utf-8")
-    contract = contract.replace("- Run ID:", f"- Run ID: {args.run_id}", 1)
-    contract = contract.replace(
-        "- Mode: `LITE`, `STANDARD`, or `STRICT`",
-        f"- Mode: `{args.mode}`",
-        1,
-    )
+    contract = (references / f"task-contract{suffix}").read_text(encoding="utf-8")
+    if language == "zh-CN":
+        contract = contract.replace("- 运行编号：", f"- 运行编号：{args.run_id}", 1)
+    else:
+        contract = contract.replace("- Run ID:", f"- Run ID: {args.run_id}", 1)
+        contract = contract.replace("- Mode: `LIGHT` or `DEEP`", f"- Mode: `{args.mode}`", 1)
+    for output_name, template_name in (
+        ("context.md", f"context{suffix}"),
+        ("glossary.md", f"glossary{suffix}"),
+        ("decisions.md", f"decisions{suffix}"),
+    ):
+        atomic_write(run_dir / output_name, (references / template_name).read_text(encoding="utf-8"))
     atomic_write(run_dir / "contract.md", contract)
     atomic_write(
         run_dir / "iterations.md",
-        (references / "iteration-log.md").read_text(encoding="utf-8"),
+        (references / f"iteration-log{suffix}").read_text(encoding="utf-8"),
     )
     atomic_write(
         run_dir / "completion.md",
-        (references / "completion-report.md").read_text(encoding="utf-8"),
+        (references / f"completion-report{suffix}").read_text(encoding="utf-8"),
     )
 
     contract_hash = hashlib.sha256(contract.encode("utf-8")).hexdigest()
@@ -56,6 +72,7 @@ def main() -> int:
         "schema_version": 1,
         "run_id": args.run_id,
         "mode": args.mode,
+        "document_language": language,
         "status": "AWAITING_CONFIRMATION",
         "contract_sha256": contract_hash,
         "iteration": 0,
@@ -67,7 +84,13 @@ def main() -> int:
             "token_budget": None,
             "monetary_budget": None,
         },
-        "criteria": [],
+        "criteria": [{
+            "id": "AC-1",
+            "status": "PENDING",
+            "verifier": "TBD before confirmation",
+            "evidence": [],
+            "failure_count": 0,
+        }],
         "fingerprints": [],
         "verifier_protection": {
             "method": "",

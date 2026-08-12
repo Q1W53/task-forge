@@ -1,6 +1,6 @@
 # Loop control and durable state
 
-Read this file for `STANDARD` and `STRICT` runs that create durable state.
+Read this file for `DEEP` runs that create durable state.
 
 ## Controller boundary
 
@@ -18,13 +18,13 @@ Use one trigger pattern:
 
 ## State contract
 
-Store current machine state at `.taskforge/<run-id>/state.json`. Required fields:
+Store current machine state at `.taskforge/<run-id>/state.json`. A complete DEEP run also requires `context.md`, `glossary.md`, `decisions.md`, `contract.md`, `iterations.md`, and `completion.md`.
 
 ```json
 {
   "schema_version": 1,
   "run_id": "example-run",
-  "mode": "STANDARD",
+  "mode": "DEEP",
   "status": "RUNNING",
   "contract_sha256": "64 lowercase hexadecimal characters",
   "iteration": 0,

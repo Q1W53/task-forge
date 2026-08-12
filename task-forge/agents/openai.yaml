@@ -1,4 +1,4 @@
 interface:
   display_name: "TaskForge"
-  short_description: "Run bounded tasks with checkable proof"
-  default_prompt: "Use $task-forge, choose the lightest safe rigor, execute within explicit limits, and prove each acceptance criterion with checkable evidence."
+  short_description: "Question assumptions, contract work, and prove results"
+  default_prompt: "Use $task-forge, choose LIGHT or DEEP questioning, show me the task contract before execution, and prove every acceptance criterion with checkable evidence."
