@@ -1,4 +1,4 @@
 interface:
   display_name: "TaskForge"
-  short_description: "Question assumptions, contract work, and prove results"
-  default_prompt: "Use $task-forge, choose LIGHT or DEEP questioning, stay in GRILL until I answer every material question, show the ready task contract before execution, and prove every acceptance criterion with checkable evidence."
+  short_description: "Make agents prove completion with contracts and evidence"
+  default_prompt: "Use $task-forge to turn my request into a confirmed task contract and prove every acceptance criterion before calling it done."
