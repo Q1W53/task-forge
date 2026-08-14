@@ -1,166 +1,163 @@
-# TaskForge｜任务锻造
+# TaskForge
 
-`GRILL -> CONTRACT -> CONFIRM -> LOOP -> PROVE | ESCALATE`
+## Make AI agents prove they're done.
 
-TaskForge 是一个面向 Codex 的任务工程 Skill。它适合处理容易误解、影响较大、需要持续推进，或者“做完了”却很难证明的工作。它先追问，再展示任务契约；用户确认后才执行，最终用逐项证据收口。
+[![License: MIT](https://img.shields.io/badge/License-MIT-111827.svg)](LICENSE)
+[![Codex Skill](https://img.shields.io/badge/Codex-Agent%20Skill-111827.svg)](task-forge/SKILL.md)
 
-## 为什么改成两个模式
+[中文说明](docs/README.zh-CN.md)
 
-旧版使用 `LITE`、`STANDARD`、`STRICT` 三档。实际使用中，`LITE` 容易被理解成“可以不提问、不展示契约”，而后两档在文档持久化上又有较多重叠。
+TaskForge is a verification-first Agent Skill for Codex. It turns an unclear request into an explicit task contract, waits for your confirmation, works inside the agreed boundary, and closes with checkable evidence.
 
-现在只保留两种行为清楚的模式：
+No silent assumptions. No invisible contracts. No verifier gaming. No fake "done."
 
-| 模式 | 适用情况 | 必须做到 |
-| --- | --- | --- |
-| `LIGHT` | 单次会话、低风险、可逆、目标基本明确 | 提出 2–5 个会改变结果的问题；在聊天中展示简版契约和验收表；得到确认后执行；最终给出证据矩阵。 |
-| `DEEP` | 多步骤、业务语义复杂、跨会话、长期运行、对外写入、不可逆或成本较高 | 分轮深问；沉淀上下文、术语和决策；建立持久状态、审批、预算和停止条件；逐轮验证并保留证据。 |
+`GRILL → CONTRACT → CONFIRM → LOOP → PROVE / ESCALATE`
 
-两种模式都不能跳过提问，也不能把未展示的内部计划当成用户已确认的契约。区别只在提问深度和是否建立持久运行目录。
+## See the difference
 
-## 阶段门禁
+Suppose you ask an agent to refactor authentication and add GitHub login.
 
-TaskForge 每次回复只允许处于一个阶段。只要还有会改变目标、范围、权限、验收方式、验证器、预算或停止条件的关键问题，任务就必须停留在 `GRILL`，状态为 `AWAITING_INPUT`。
-
-- 提出关键问题的同一轮，不得同时给出可确认的任务契约。
-- `NOT READY` 只是问题缺口说明，不能进入 `CONFIRM`。
-- 所有关键问题得到回答后，才可生成 `READY` 或 `READY WITH TBDs` 契约。
-- 用户明确确认可见契约后，才可进入 TaskForge 的执行 `LOOP`。
-- 交付物内部的循环或迭代机制属于任务内容，不等于 TaskForge 已进入执行阶段。
-
-## DEEP 的文档体系
-
-`DEEP` 吸收了 `grill-with-docs` 的做法。访谈不再只留在聊天记录里，而是把事实、共同语言和关键选择拆开保存：
-
-```text
-.taskforge/<run-id>/
-├── context.md       # 当前状态、目标状态、事实来源、约束和待确认问题
-├── glossary.md      # 术语、缩写、统一定义和负责人
-├── decisions.md     # 决策问题、备选方案、选择理由和影响
-├── contract.md      # 经确认的执行边界、权限、验收和退出条件
-├── state.json       # 机器可读状态、预算、验收项和状态指纹
-├── iterations.md    # 只追加的动作与验证记录
-└── completion.md    # 最终证据矩阵、剩余风险和后续决定
-```
-
-`context.md` 只把已确认事实写成事实；没有确认的内容留在“待确认问题”中。`glossary.md` 用来处理同一个词在业务、技术和管理团队中含义不同的问题。`decisions.md` 记录为什么选 A 而没有选 B，避免后续 Agent 只看到结论却不知道限制条件。
-
-契约保持精简。背景材料属于 `context.md`，术语属于 `glossary.md`，取舍属于 `decisions.md`；`contract.md` 只保留执行必须遵守的边界。
-
-## 文档语言自动选择
-
-TaskForge 根据用户的主要语言选择所有面向用户的文档：
-
-- 中文请求生成中文契约、上下文、术语、决策、迭代和完成报告。
-- 英文请求生成英文版本。
-- 用户明确指定语言时，明确要求优先于自动判断。
-- 中英文比例接近且没有指定时，沿用当前对话的主要语言，并把选择写进契约。
-- 文件名和 `state.json` 的字段保持英文，方便脚本稳定读取。
-
-初始化脚本支持显式语言，也可以根据请求文本判断：
-
-```bash
-python task-forge/scripts/init_run.py /path/to/workspace \
-  --run-id sales-pipeline \
-  --mode DEEP \
-  --language auto \
-  --user-text "梳理销售管线实施方案，并在确认后持续执行"
-```
-
-需要固定语言时使用 `--language zh-CN` 或 `--language en`。
-
-## 六个阶段
-
-| 阶段 | 实际行为 |
+| Without TaskForge | With TaskForge |
 | --- | --- |
-| `GRILL` | 先复述当前状态和目标，再追问会改变业务含义、范围、权限、验收或停止行为的问题。 |
-| `CONTRACT` | 展示目标、范围、事实来源、受保护内容、权限、验收证据和退出条件。 |
-| `CONFIRM` | 用户确认可见契约后才开始产生状态变化；沉默不算授权。 |
-| `LOOP` | 每轮只处理一个未通过的验收项，执行最小动作，然后立即验证和记录。 |
-| `PROVE` | 最终逐项列出标准、结果、证据和验证方式；业务正确性与技术正确性分开检查。 |
-| `ESCALATE` | 遇到权限不足、来源冲突、预算耗尽、重复失败或无法判断成功时停止。 |
-
-## 使用示例
-
-轻量任务：
+| Starts editing immediately | Asks what must remain compatible |
+| Guesses what "done" means | Maps acceptance criteria to evidence |
+| May skip migrations or existing login paths | Records protected behavior and approval boundaries |
+| Reports a summary | Reports test output, schema checks, and unresolved risks |
 
 ```text
-$task-forge 用 LIGHT 模式帮我修改这份一页 PPT。先问清当前进度和验收要求，展示简版契约，我确认后再制作。
+Before
+
+Agent: Done. I refactored authentication and added GitHub OAuth.
+
+After
+
+TaskForge: PROVE
+✓ Existing password login: verifier passed
+✓ GitHub callback flow: verifier passed
+✓ Schema diff: no unapproved changes
+✓ Acceptance criteria: 8/8 passed
 ```
 
-复杂任务：
+The example above is illustrative, not a published benchmark result. See the full [authentication refactor walkthrough](examples/auth-refactor.md).
+
+## Install
+
+Ask Codex to install the skill from this repository:
 
 ```text
-$task-forge 用 DEEP 模式设计并实施销售自动化工作流。把业务上下文、术语和架构决策分别沉淀，契约使用中文；没有通过验收前持续迭代，但不要越过审批和预算边界。
+$skill-installer Install the task-forge skill from https://github.com/Q1W53/task-forge/tree/main/task-forge
 ```
 
-英文任务：
+Then start a task:
 
 ```text
-$task-forge Use DEEP mode. Interview me in rounds, keep the contract and companion documents in English, and publish only after every acceptance criterion has evidence.
+$task-forge Help me refactor this authentication system. Ask what could change the result, show me the task contract, wait for confirmation, and prove every acceptance criterion before calling it done.
 ```
 
-## 初始化与验证
+Codex detects skills in `$HOME/.agents/skills` and in a repository's `.agents/skills` directory. For a manual install, copy the inner [`task-forge/`](task-forge/) folder to one of those locations. Restart Codex if the skill doesn't appear. See OpenAI's [Build skills](https://developers.openai.com/plugins/build/skills) documentation for the current discovery rules.
 
-验证器只使用 Python 标准库。完整 `DEEP` 目录必须包含七份文件，缺少任何一份都会失败；契约可以使用中文或英文标题。
+## What happens next
 
-```bash
-python task-forge/scripts/init_run.py /path/to/workspace \
-  --run-id contract-review \
-  --mode DEEP \
-  --language zh-CN
+### 1. GRILL
 
-python task-forge/scripts/validate_run.py \
-  /path/to/workspace/.taskforge/contract-review
+TaskForge restates the current state and asks only the questions that could change the goal, scope, authority, evidence, budget, or stopping rule. Material gaps keep the task in `AWAITING_INPUT`.
 
-python task-forge/scripts/validate_run.py --self-test
-```
+### 2. CONTRACT
 
-## 从旧版本迁移
+It shows the execution boundary: outcome, non-goals, protected invariants, allowed actions, approval gates, acceptance criteria, evidence, and exits.
 
-| 旧模式 | 新模式 | 变化 |
+### 3. CONFIRM
+
+You confirm the visible contract. Silence never grants permission, and an incomplete contract can't advance to execution.
+
+### 4. LOOP
+
+Each iteration takes the smallest safe action, runs the named verifier, records evidence, and checks retry and no-progress limits before continuing.
+
+### 5. PROVE or ESCALATE
+
+`PROVE` requires every criterion to pass with checkable evidence. When permission, input, budget, or trustworthy verification is missing, TaskForge stops with `NEEDS_APPROVAL`, `PARTIAL`, or `BLOCKED` instead of inventing success.
+
+## LIGHT or DEEP
+
+Both modes ask questions, show a contract, wait for confirmation, and finish with evidence. The difference is how much control and durable state the task needs.
+
+| Mode | Use it for | What it adds |
 | --- | --- | --- |
-| `LITE` | `LIGHT` | 不再允许完全跳过访谈；必须展示简版契约和最终证据。 |
-| `STANDARD` | `DEEP` | 保留持久契约、状态、迭代和完成报告，并增加上下文、术语和决策文档。 |
-| `STRICT` | `DEEP` | 仍使用审批、硬预算、无进展停止和验证器保护；这些机制按风险启用，不再单独设模式。 |
+| `LIGHT` | One-session, low-risk, reversible work with a mostly clear outcome | A short interview, compact contract, and evidence matrix in chat |
+| `DEEP` | Multi-step, ambiguous, long-running, external, costly, or hard-to-reverse work | Durable context, decisions, state, approvals, budgets, iteration logs, and completion evidence |
 
-旧的 `STANDARD` 或 `STRICT` 运行目录不会被自动重写。新任务应使用 `DEEP`；需要迁移旧状态时，先补齐三份新增文档，并把 `state.json` 中的模式改为 `DEEP`，随后运行验证器。
+A DEEP run keeps its record under `.taskforge/<run-id>/`:
 
-## 验证器保护与停止规则
-
-验证器代码、受保护测试、CI 规则及其配置不能落入执行循环的写权限。Agent 不能靠删除检查、降低覆盖率、跳过失败或硬编码答案获得通过信号。
-
-默认情况下，同一验收项最多失败三次；两个实质相同的失败，或连续两轮状态指纹相同，都会停止继续尝试。无人值守任务还必须由模型调用之外的控制器执行时间、迭代、Token、金额和速率限制。
-
-## 安装
-
-```bash
-python install-skill-from-github.py --repo Q1W53/task-forge --path task-forge
+```text
+context.md      confirmed facts and open questions
+glossary.md     shared definitions
+decisions.md    consequential choices and reasons
+contract.md     confirmed execution boundary
+state.json      machine-readable limits and criterion state
+iterations.md   append-only actions and verifier results
+completion.md   final evidence matrix and remaining risk
 ```
 
-也可以克隆仓库，然后把内层 `task-forge` 目录复制到 `$CODEX_HOME/skills/task-forge`。
+## Why TaskForge
 
-## 仓库结构
+Coding agents are good at producing changes, but a completion claim is still only a claim. TaskForge makes four failure modes visible:
+
+- The request contains a business or technical ambiguity that would change the result.
+- The agent acts beyond the authority the user intended to grant.
+- A task keeps retrying without progress, spending time or tokens without a reliable exit.
+- The agent weakens tests, skips checks, or treats implementation output as proof.
+
+TaskForge keeps verifier code, protected tests, CI rules, and their configuration outside the execution loop's write authority. An agent can't pass by deleting the check.
+
+## Good fits
+
+Use TaskForge for migrations, release preparation, authentication changes, multi-file refactors, external-system writes, unattended work, business workflows, and any request where a wrong interpretation costs more than a short interview.
+
+Skip it for a factual question or a tiny reversible edit whose expected result is already exact. TaskForge should add control where control matters, not ceremony to every prompt.
+
+More prompts live in [`examples/`](examples/).
+
+## Evals and benchmark method
+
+The repository includes a behavior suite for stage gates, durable proof, approval boundaries, verifier protection, no-progress stopping, and a no-trigger control. Deterministic graders inspect files, state, and final responses.
+
+No benchmark score is claimed in this README. Model results vary, and a useful comparison needs repeated trials, pinned model identifiers, recorded environment details, and published raw artifacts.
+
+Read [`evals/README.md`](evals/README.md) for the suite layout, run method, reporting template, and contribution rules.
+
+## Roadmap
+
+- [x] LIGHT and DEEP modes
+- [x] Hard stage gates and explicit confirmation
+- [x] Durable DEEP state with language-aware templates
+- [x] Deterministic behavior eval cases
+- [ ] Publish repeatable multi-model baseline runs with raw artifacts
+- [ ] Add more examples from real, permission-safe workflows
+- [ ] Package TaskForge for easier plugin distribution
+- [ ] Add CI checks for skill validation and Markdown links
+
+Roadmap items describe intended work, not promised dates. See [`docs/ROADMAP.md`](docs/ROADMAP.md) for acceptance notes.
+
+## Repository layout
 
 ```text
 task-forge/
-├── README.md
-├── LICENSE
-├── evals/
-└── task-forge/
+├── README.md                 product overview and quick start
+├── docs/                     Chinese guide, roadmap, and launch copy
+├── examples/                 copyable prompts and walkthroughs
+├── evals/                    behavior suite and deterministic graders
+└── task-forge/               installable Codex Skill
     ├── SKILL.md
     ├── agents/openai.yaml
     ├── references/
     └── scripts/
 ```
 
-仓库根目录存放公开说明和 MIT 许可证；内层目录是可直接安装的 Codex Skill。
+## Contributing
 
-## 更新日志
+Bug reports, sharper examples, failure cases, documentation fixes, and deterministic eval cases are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 
-版本变化记录见 [CHANGELOG.md](CHANGELOG.md)。
+If TaskForge helps you catch one false "done," [star the repository](https://github.com/Q1W53/task-forge) so other people can find it.
 
-## License
-
-本项目采用 [MIT License](LICENSE)。保留版权与许可证声明后，可以使用、修改、再分发或用于商业项目。
-
-© 2026 Q1W53
+MIT licensed. See [LICENSE](LICENSE).

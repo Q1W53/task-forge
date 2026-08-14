@@ -1,5 +1,15 @@
 # 更新日志
 
+## Unreleased
+
+### Documentation
+
+- Reworked the repository homepage around the verification-first positioning: “Make AI agents prove they're done.”
+- Added an English quick start, a separate Chinese guide, Before/After walkthroughs, contribution notes, and a public roadmap.
+- Documented the existing behavior eval suite, reproduction requirements, and a benchmark reporting method without claiming unrun results.
+- Added GitHub description, topics, search copy, and launch drafts for maintainers.
+- Updated Codex installation guidance to use `$skill-installer` or the documented `.agents/skills` discovery locations.
+
 ## 2026-08-12
 
 ### 修复
